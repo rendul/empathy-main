@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Story Sanctuary | Every Tide</title>
+    <link rel="stylesheet" href="home.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-logo"><a href="index.html" style="text-decoration:none; color:inherit;">Tide</a></div>
+        <div class="nav-links">
+            <a href="home.html">Home</a>
+            <a href="home.html#stories">Stories</a>
+            <a href="home.html#about">About</a>
+            <a href="home.html#contact">Contact</a>
+        </div>
+    </nav>
+
+    <main class="main-container" style="padding-top: 60px;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h1 style="font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 400; margin-bottom: 10px;">The Story Sanctuary</h1>
+            <p style="color: var(--text-muted);">A place to share and discover gentle memories.</p>
+        </div>
+
+        <!-- Toggle Tabs for Write / Read -->
+        <div class="story-tabs">
+            <button class="tab-btn active" onclick="switchTab('write')">Write a Story</button>
+            <button class="tab-btn" onclick="switchTab('read')">Read Stories</button>
+        </div>
+
+        <!-- Write View -->
+        <div id="write-section" class="story-view">
+            <div class="card-box">
+                <h3>Share a Memory of Love</h3>
+                <form id="storyForm">
+                    <div class="form-group">
+                        <label for="contributorName">Your Name (or Anonymous)</label>
+                        <input type="text" id="contributorName" required placeholder="How should we call you?">
+                    </div>
+                    <div class="form-group">
+                        <label for="lovedOneName">Name of Your Loved One</label>
+                        <input type="text" id="lovedOneName" required placeholder="Who is this story about?">
+                    </div>
+                    <div class="form-group">
+                        <label for="storyText">Their Story or a Cherished Memory</label>
+                        <textarea id="storyText" rows="5" required placeholder="Share what made them special, a happy memory, or why they bring warmth to your heart..."></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Publish to the Tide</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Read View -->
+        <div id="read-section" class="story-view hidden">
+            <div class="card-box">
+                <h3>Stories of Warmth & Connection</h3>
+                <div id="storiesWall" class="stories-container">
+                    <!-- Stories populate here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function switchTab(tab) {
+            const writeSec = document.getElementById('write-section');
+            const readSec = document.getElementById('read-section');
+            const btns = document.querySelectorAll('.tab-btn');
+
+            btns.forEach(b => b.classList.remove('active'));
+
+            if(tab === 'write') {
+                writeSec.classList.remove('hidden');
+                readSec.classList.add('hidden');
+                event.target.classList.add('active');
+            } else {
+                readSec.classList.remove('hidden');
+                writeSec.classList.add('hidden');
+                event.target.classList.add('active');
+                displayStories();
+            }
+        }
+
+        // Check URL parameters if user clicked a specific option
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if(urlParams.get('mode') === 'read') {
+                document.querySelectorAll('.tab-btn')[1].click();
+            }
+        });
+
+        // Storage logic
+        const storyForm = document.getElementById('storyForm');
+        const storiesWall = document.getElementById('storiesWall');
+        let stories = JSON.parse(localStorage.getItem('tide_stories')) || [
+            { contributor: "A Wanderer", lovedOne: "Sarah", text: "Sarah always found light in the darkest rooms..." }
+        ];
+
+        function displayStories() {
+            storiesWall.innerHTML = '';
+            stories.forEach(story => {
+                const card = document.createElement('div');
+                card.className = 'story-card';
+                card.innerHTML = `
+                    <h4>In Memory of ${escapeHtml(story.lovedOne)}</h4>
+                    <p>${escapeHtml(story.text)}</p>
+                    <div class="author">Shared by ${escapeHtml(story.contributor)}</div>
+                `;
+                storiesWall.appendChild(card);
+            });
+        }
+
+        storyForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newStory = {
+                contributor: document.getElementById('contributorName').value,
+                lovedOne: document.getElementById('lovedOneName').value,
+                text: document.getElementById('storyText').value
+            };
+            stories.unshift(newStory);
+            localStorage.setItem('tide_stories', JSON.stringify(stories));
+            storyForm.reset();
+            alert('Your story has been added to the tide.');
+            document.querySelectorAll('.tab-btn')[1].click();
+        });
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+    </script>
+</body>
+</html>
